@@ -40,108 +40,69 @@ To convert a grammar into a finite automaton, we map grammar components (non-ter
 
 
 ## Implementation description
-
-### **1. `Grammar` Class (Defines the Regular Grammar)**
-This class defines a **regular grammar** with:
-- **`vn`**: A set of **non-terminal symbols** (`S, A, B, C`).
-- **`vt`**: A set of **terminal symbols** (`a, b`).
-- **`p`**: The **production rules** that describe valid transformations between symbols.
-- **`start_symbol`**: The initial state of the grammar (`S`).
-
-The **`generate_string()`** method generates a **valid string** by recursively replacing non-terminals with randomly chosen production rules until only terminal symbols remain.
+### **1. `generate_string()` Function**
+This function generates a valid string from the language defined by the grammar. It starts with the start symbol S and iteratively replaces non-terminal symbols with randomly chosen production rules until only terminal symbols remain. The process ensures that the generated string adheres to the grammar's production rules.
 
 ```python
-import random
-from finite_automaton import FiniteAutomaton
-
-class Grammar:
-    def __init__(self):
-        self.vn = {'S', 'A', 'B', 'C'}
-        self.vt = {'a', 'b'}
-        self.p = {
-            'S': ['aA'],
-            'A': ['bS', 'aB'],
-            'B': ['bC', 'aB'],
-            'C': ['aA', 'b']
-        }
-        self.start_symbol = 'S'
-
-    def generate_string(self):
-        string = self.start_symbol
-        while any(v in string for v in self.vn):
-            for v in string:
-                if v in self.vn:
-                    string = string.replace(v, random.choice(self.p[v]), 1)
-                    break
-        return string
+def generate_string(self):
+    string = self.start_symbol
+    while any(v in string for v in self.vn):
+        for v in string:
+            if v in self.vn:
+                string = string.replace(v, random.choice(self.p[v]), 1)
+                break
+    return string 
 ```
 
-### **2. `to_finite_automaton()` (Converts Grammar to FA)**
-This method **constructs a finite automaton (FA)** using:
-- **`q`**: The **states** (same as non-terminals).
-- **`sigma`**: The **alphabet** (same as terminal symbols).
-- **`q0`**: The **start state** (`S`).
-- **`delta`**: The **transition function**, mapping input symbols to new states based on production rules.
-- **`f`**: The **final states**, determined as states that only produce terminal symbols (`C` is manually added as a final state).
+### **2. `to_finite_automaton()` Function**
+This function converts the grammar into a finite automaton. It constructs the automaton by mapping the grammar's non-terminals to states, terminals to the alphabet, and production rules to the transition function. The start state is the grammar's start symbol, and the final states are determined by identifying states that only produce terminal symbols. Additionally, state C is manually added as a final state.
 
 ```python
-    def to_finite_automaton(self):
-        q = self.vn  # states
-        sigma = self.vt  # alphabet
-        q0 = self.start_symbol  # start state
-        delta = {}  # transition func
+def to_finite_automaton(self):
+    q = self.vn  # states
+    sigma = self.vt  # alphabet
+    q0 = self.start_symbol  # start state
+    delta = {}  # transition func
 
-        for key in self.p.keys():
-            for rule in self.p[key]:
-                if key not in delta:
-                    delta[key] = []
-                if len(rule) == 2:
-                    delta[key].append((rule[0], rule[1]))  # (input symbol, next state)
-                else:
-                    delta[key].append((rule[0], None))  # terminal transition
+    for key in self.p.keys():
+        for rule in self.p[key]:
+            if key not in delta:
+                delta[key] = []
+            if len(rule) == 2:
+                delta[key].append((rule[0], rule[1]))  # (input symbol, next state)
+            else:
+                delta[key].append((rule[0], None))  # terminal transition
 
-        # find final states (terminal only strings)
-        f = {key for key in self.p if all(rule in self.vt for rule in self.p[key])}
-        f.add('C')  # C is final state
+    # find final states (terminal only strings)
+    f = {key for key in self.p if all(rule in self.vt for rule in self.p[key])}
+    f.add('C')  # C is final state
 
-        return FiniteAutomaton(q, sigma, delta, q0, f)
+    return FiniteAutomaton(q, sigma, delta, q0, f)
 ```
 
-### **3. `FiniteAutomaton` Class (Simulates a FA)**
-This class models a **finite automaton** with:
-- **`q, sigma, delta, q0, f`**: Representing the states, alphabet, transition function, start state, and final states.
-- **`string_belongs_to_language()`**: A method that:
-  - **Simulates state transitions** based on input symbols.
-  - **Checks if the final state is in `f`** to determine whether the string belongs to the language.
+### **3. `string_belongs_to_language()` Function**
+This function checks if a given input string belongs to the language recognized by the finite automaton. It simulates the automaton's state transitions based on the input symbols. If the automaton reaches a final state after processing the entire string, the string is accepted; otherwise, it is rejected.
 
 ```python
-class FiniteAutomaton:
-    def __init__(self, q, sigma, delta, q0, f):
-        self.q = q  # states
-        self.sigma = sigma  # alphabet
-        self.delta = delta  # transition func
-        self.q0 = q0  # start state
-        self.f = f  # accept states
+def string_belongs_to_language(self, input_string):
+    current_state = self.q0
 
-    def string_belongs_to_language(self, input_string):
-        current_state = self.q0
+    for c in input_string:
+        if c not in self.sigma or current_state not in self.delta:
+            return False
 
-        for c in input_string:
-            if c not in self.sigma or current_state not in self.delta:
-                return False
+        next_state = None
+        for transition in self.delta[current_state]:
+            if c == transition[0]:  # if the transition matches input
+                next_state = transition[1] if transition[1] is not None else current_state
+                break
 
-            next_state = None
-            for transition in self.delta[current_state]:
-                if c == transition[0]:  # if the transition matches input
-                    next_state = transition[1] if transition[1] is not None else current_state
-                    break
+        if next_state is None:
+            return False  # no valid transition
 
-            if next_state is None:
-                return False  # no valid transition
+        current_state = next_state
 
-            current_state = next_state
-
-        return current_state in self.f
+    return current_state in self.f
 ```
 
 ### **4. Testing the Implementation**
