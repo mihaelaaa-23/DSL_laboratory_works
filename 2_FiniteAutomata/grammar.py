@@ -68,7 +68,6 @@ class Grammar:
         f.add('C')
 
         return FiniteAutomaton(q, sigma, delta, q0, f)
-
     def finite_automaton_to_grammar(self, fa):
         grammar_rules = {}
 
