@@ -64,4 +64,24 @@ class FiniteAutomaton:
 
         return dfa_transitions, dfa_states
 
+    def draw_automaton(self, filename="finite_automaton"):
+        dot = Digraph(format='png')
+        dot.attr(rankdir="LR", size="8")  # Left-to-right layout
 
+        # create nodes
+        for state in self.q:
+            shape = "doublecircle" if state in self.f else "circle"
+            dot.node(state, shape=shape)
+
+        #start state with arrow
+        dot.node("start", shape="none", label="")  # invisible start node
+        dot.edge("start", self.q0, label="")  #edge to the actual start state
+
+        #edges for transitions
+        for state, transitions in self.delta.items():
+            for symbol, next_states in transitions.items():
+                for next_state in next_states:
+                    dot.edge(state, next_state, label=symbol, arrowsize="0.7")
+
+        dot.render(filename, format="png", cleanup=False)
+        print(f"Automaton visualization saved as {filename}.png")
