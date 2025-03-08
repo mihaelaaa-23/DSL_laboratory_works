@@ -4,7 +4,7 @@ from enum import Enum
 class TokenType(str, Enum):
     NUMBER = "NUMBER"
     IDENTIFIER = "IDENTIFIER"  # variables like x, y
-    FUNCTION = "FUNCTION"  # sin, cos, tan, cot
+    FUNCTION = "FUNCTION"  # sin, cos, tan, cot, exp, sqrt
     ASSIGN = "ASSIGN"
     PLUS = "PLUS"
     MINUS = "MINUS"
