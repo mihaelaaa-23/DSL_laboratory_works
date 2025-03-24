@@ -137,7 +137,7 @@ class Steps:
 
         elif regex_name == "regex_2":
             explanation.append("Step 1: Match 'L'")
-            explanation.append("Step 2: Match 'M', 'I', or 'N'")
+            explanation.append("Step 2: Match 'M' or 'N'")
             explanation.append("Step 3: Match exactly 3 'O's")
             explanation.append("Step 4: Match 0 to 5 occurrences of 'P'")
             explanation.append("Step 5: Match 'Q'")

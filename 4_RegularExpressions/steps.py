@@ -10,7 +10,7 @@ def steps(regex_name):
 
     elif regex_name == "regex_2":
         explanation.append("Step 1: Match 'L' at the beginning")
-        explanation.append("Step 2: Match one of the letters: 'M', 'I', or 'N'")
+        explanation.append("Step 2: Match one of the letters: 'M' or 'N'")
         explanation.append("Step 3: Match exactly three 'O' characters")
         explanation.append("Step 4: Match zero to five 'P' characters")
         explanation.append("Step 5: Match the character 'Q'")
