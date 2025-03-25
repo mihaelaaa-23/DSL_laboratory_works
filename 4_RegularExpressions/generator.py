@@ -1,35 +1,63 @@
+import random
+
+
 class Generator:
+    def __init__(self, expr):
+        self.expr = expr
+        self.chars = []
 
-    def generate_regex_1(self):
-        results = []
-        for a in ['S', 'T']:
-            for b in ['U', 'V']:
-                for w_count in range(0,6):
-                    for y_count in range(1,6):
-                        w = "W" * w_count
-                        y = "Y" * y_count
-                        word = a + b + w + y + "24"
-                        results.append(word)
-        return results
+    def generate_string(self):
+        string = []
+        i = 0
 
-    def generate_regex_2(self):
-        results = []
-        for a in ['M', 'N']:
-            for p_count in range(0, 6):
-                for b in ['2', '3']:
-                    p = 'P' * p_count
-                    word = "L" + a + "OOO" + p + "Q" + b
-                    results.append(word)
-        return results
+        while i < len(self.expr):
+            char = self.expr[i]
 
-    def generate_regex_3(self):
-        results = []
-        xyz = ['X', 'Y', 'Z']
-        for r_count in range(0, 6):
-            for middle in ['T', 'U', 'V']:
-                for x1 in xyz:
-                    for x2 in xyz:
-                        r = 'R' * r_count
-                        word = r + "S" + middle + "W" + x1 + x2
-                        results.append(word)
-        return results
+            if char == "(":
+                group_end = self.expr.find(")", i)
+                group_content = self.expr[i + 1:group_end]
+                selected = self.generate_group(group_content)
+                string.append(selected)
+                i = group_end
+
+            elif char == "*":
+                last = string.pop()
+                string.append(last * random.randint(0, 5))
+
+            elif char == "+":
+                last = string.pop()
+                string.append(last * random.randint(1, 5))
+
+            elif char == "^":
+                repeat = int(self.expr[i + 1])
+                last = string.pop()
+                string.append(last * repeat)
+                i += 1
+
+            elif char == "?":
+                last = string.pop()
+                string.append(last * random.randint(0, 1))
+
+            elif char == "{" and i + 2 < len(self.expr) and self.expr[i + 2] == "}":
+                repeat = int(self.expr[i + 1])
+                last = string.pop()
+                string.append(last * repeat)
+                i += 2
+
+            elif char in {"|", ")", "}"}:
+                pass
+
+            else:
+                string.append(char)
+
+            i += 1
+
+        return ' '.join(string)
+
+    def generate_group(self, group_expr):
+        options = group_expr.split("|")
+        return random.choice(options)
+
+    def generate_n_strings(self):
+        for _ in range(5):
+            print(self.generate_string())

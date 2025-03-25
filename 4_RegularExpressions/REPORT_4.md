@@ -69,129 +69,103 @@ class RegexPatterns:
 
 ### `generator.py`
 
-The `generator.py` file defines the `Generator` class, which is responsible for producing all valid strings that conform to the structure of the regular expressions defined in the patterns.py module. This generation is done without relying on external libraries, using only fundamental Python constructs such as loops and string operations.
+The `generator.py` file contains the Generator class which is responsible for parsing regular expressions and generating valid strings that match them. The implementation now handles regex parsing dynamically rather than using hardcoded patterns.
+It processes groups `( )` with alternatives `|`, handles quantifiers `*`, `+`, `?`, and `{n}`, limits repetitions to 5 for unbounded quantifiers, and generates random valid strings
 
-The generator works by simulating the logic behind each regular expression, manually constructing combinations of characters that match the given pattern. To prevent infinite output due to operators like * (zero or more) and + (one or more), a strict upper limit of 5 repetitions is enforced wherever applicable.
-
-`generate_regex_1()` method generates all valid strings for the expression `(S|T)(U|V)W*Y+24`. It begins by selecting one character from `'S'` or `'T'`, followed by another from `'U'` or `'V'`. Next, it appends between 0 to 5 occurrences of `'W'`, followed by 1 to 5 occurrences of `'Y'`, and concludes with the fixed suffix `'24'`.
-Through a series of nested loops, it constructs every possible valid permutation that fits these constraints. This method ensures complete coverage of all allowed combinations while maintaining bounded repetition.
+`__init__(self, expr)` initializes the `Generator` class with an expression string. The expression defines the pattern for generating random strings.
 ```python
-class Generator:
-    def generate_regex_1(self):
-        results = []
-        for a in ['S', 'T']:
-            for b in ['U', 'V']:
-                for w_count in range(0, 6):
-                    for y_count in range(1, 6):
-                        w = 'W' * w_count
-                        y = 'Y' * y_count
-                        results.append(f"{a}{b}{w}{y}24")
-        return results
+    def __init__(self, expr):
+        self.expr = expr
+        self.chars = []
 ```
-`generate_regex_2()` targets the pattern `L(M|N)O{3}P*Q(2|3)`. It begins each string with `'L'`, then selects one character from the set `'M'` or `'N'`. It appends exactly three `'O'` characters (as defined by `O{3}`), followed by 0 to 5 repetitions of the character `'P'`. Finally, it appends `'Q'` and ends the string with either `'2'` or `'3'`.
-This function uses deterministic construction, iterating over all variations of `'P'` and suffix digits to ensure exhaustive generation of all valid strings under the specified limits.
-```python
-    def generate_regex_2(self):
-        results = []
-        for a in ['M', 'N']:
-            for p_count in range(0, 6):
-                for b in ['2', '3']:
-                    p = 'P' * p_count
-                    results.append(f"L{a}OOO{p}Q{b}")
-        return results
-```
-`generate_regex_3()` constructs strings that match the regular expression `R*S(T|U|V)W(X|Y|Z){2}`. It begins with 0 to 5 occurrences of `'R'`, followed by the character `'S'`, and then one from the set `'T'`, `'U'`, or `'V'`. The next character is always `'W'`, and the expression concludes with two characters, each independently chosen from the set `{X, Y, Z}`—resulting in 9 possible suffix combinations.
-To achieve this, the function uses nested loops that iterate through each valid character and repetition count. By doing so, it successfully produces all structurally correct strings according to the expression.
+`generate_string(self)` parses the expression and generates a random string based on the defined patterns. It supports:
+- Parentheses `()` for grouping with the `|` (OR) operator.
+- `*` for 0 to 5 repetitions of the preceding character/group.
+- `+` for 1 to 5 repetitions of the preceding character/group.
+- `?` for 0 or 1 repetition of the preceding character/group.
+- `^N` or `{N}` for exactly N repetitions of the preceding character/group.
 
 ```python
-    def generate_regex_3(self):
-        results = []
-        xyz = ['X', 'Y', 'Z']
-        for r_count in range(0, 6):
-            for a in ['T', 'U', 'V']:
-                for x1 in xyz:
-                    for x2 in xyz:
-                        r = 'R' * r_count
-                        results.append(f"{r}S{a}W{x1}{x2}")
-        return results
+    def generate_string(self):
+        string = []
+        i = 0
+
+        while i < len(self.expr):
+            char = self.expr[i]
+
+            if char == "(":
+                group_end = self.expr.find(")", i)
+                group_content = self.expr[i + 1:group_end]
+                selected = self.generate_group(group_content)
+                string.append(selected)
+                i = group_end
+
+            elif char == "*":
+                last = string.pop()
+                string.append(last * random.randint(0, 5))
+
+            elif char == "+":
+                last = string.pop()
+                string.append(last * random.randint(1, 5))
+
+            elif char == "^":
+                repeat = int(self.expr[i + 1])
+                last = string.pop()
+                string.append(last * repeat)
+                i += 1
+
+            elif char == "?":
+                last = string.pop()
+                string.append(last * random.randint(0, 1))
+
+            elif char == "{" and i + 2 < len(self.expr) and self.expr[i + 2] == "}":
+                repeat = int(self.expr[i + 1])
+                last = string.pop()
+                string.append(last * repeat)
+                i += 2
+
+            elif char in {"|", ")", "}"}:
+                pass
+
+            else:
+                string.append(char)
+
+            i += 1
+
+        return ' '.join(string)
 ```
+`generate_group(self, group_expr)` handles expressions inside parentheses `()`, which define alternative options separated by `|`. Randomly selects one of the options and returns it.
 
----
-
-### `steps.py`
-
-The `steps.py` file contains the `Steps` class, which provides a human-readable, step-by-step breakdown of how each regular expression is interpreted and processed. This class is particularly useful for educational purposes, helping users understand the sequential logic behind each regular expression.
-
-The class exposes a single method called explain, which takes the name of a regular expression (e.g., `regex_1`) and returns a list of strings, each representing a step in the pattern's evaluation.
 ```python
-class Steps:
-    def explain(self, regex_name):
-        explanation = []
-
-        if regex_name == "regex_1":
-            explanation.append("Step 1: Match 'S' or 'T'")
-            explanation.append("Step 2: Match 'U' or 'V'")
-            explanation.append("Step 3: Match 0 to 5 occurrences of 'W'")
-            explanation.append("Step 4: Match 1 to 5 occurrences of 'Y'")
-            explanation.append("Step 5: Match the suffix '24'")
-
-        elif regex_name == "regex_2":
-            explanation.append("Step 1: Match 'L'")
-            explanation.append("Step 2: Match 'M' or 'N'")
-            explanation.append("Step 3: Match exactly 3 'O's")
-            explanation.append("Step 4: Match 0 to 5 occurrences of 'P'")
-            explanation.append("Step 5: Match 'Q'")
-            explanation.append("Step 6: Match '2' or '3'")
-
-        elif regex_name == "regex_3":
-            explanation.append("Step 1: Match 0 to 5 occurrences of 'R'")
-            explanation.append("Step 2: Match 'S'")
-            explanation.append("Step 3: Match 'T', 'U', or 'V'")
-            explanation.append("Step 4: Match 'W'")
-            explanation.append("Step 5: Match two characters from {'X', 'Y', 'Z'}")
-
-        return explanation
+    def generate_group(self, group_expr):
+        options = group_expr.split("|")
+        return random.choice(options)
 ```
 
+`generate_n_strings(self)` generates and prints five random strings using the generate_string method.
+```python
+    def generate_n_strings(self):
+        for _ in range(5):
+            print(self.generate_string())
+```
 ---
 
 ### `main.py`
 
 The `main.py` file serves as the entry point of the regular expression generator program. Its primary function is to coordinate the generation of valid strings from regex patterns and to display their structure and examples in a readable format. It brings together the main components of the project—pattern definitions, the generator logic, and the step-by-step explanation of each expression.
-
-The `print_examples` function is used to display the title of the regex expression (e.g., “Regular Expression 1”), print the actual regex string from the `RegexPatterns` dictionary, retrieve and display a list of step-by-step instructions using the steps() function, randomize and display ten sample strings from the list of all valid combinations.
 ```python
-import random
-
 from generator import Generator
-from steps import steps
-from patterns import RegexPatterns
 
-def print_examples(title, pattern_name, examples):
-    print(f"\n[{title}]")
-    print("Regular Expression:", RegexPatterns.VARIANT_4[pattern_name])
-    print("How it works:")
-    for step in steps(pattern_name):
-        print("  -", step)
-    print("Examples:")
-    random.shuffle(examples) # remove this for the first 10
-    for ex in examples[:10]:  # show only 10
-        print(" ", ex)
-```
-The main script begins by printing a title for context. It then creates an instance of the `Generator` class to access the generation methods for each of the three regex patterns. Each method is called in turn, and the resulting list of valid strings is passed to `print_examples()`, which handles the display and explanation.
-```python
-print("REGULAR EXPRESSION GENERATOR (VARIANT 4)\n")
+expressions = [
+    "(S|T)(U|V)W*Y+24",
+    "L(M|N)O{3}P*Q(2|3)",
+    "R*S(T|U|V)W(X|Y|Z){2}"
+]
 
-generator = Generator()
-
-regex_1_examples = generator.generate_regex_1()
-print_examples("Regular Expression 1", "regex_1", regex_1_examples)
-
-regex_2_examples = generator.generate_regex_2()
-print_examples("Regular Expression 2", "regex_2", regex_2_examples)
-
-regex_3_examples = generator.generate_regex_3()
-print_examples("Regular Expression 3", "regex_3", regex_3_examples)
+for expr in expressions:
+        print(f"\nGenerated strings for expression: {expr}")
+        generator = Generator(expr)
+        generator.generate_n_strings()
 ```
 
 ---
