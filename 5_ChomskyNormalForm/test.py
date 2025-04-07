@@ -29,7 +29,7 @@ class TestGrammar(unittest.TestCase):
 
     def test_eliminate_epsilon_productions(self):
         self.grammar.eliminate_epsilon_productions()
-        self.assertNotIn('ε', self.grammar.rules['D'])
+        self.assertNotIn('ε', self.grammar.rules['X'])
 
     def test_eliminate_renaming_productions(self):
         self.grammar.eliminate_epsilon_productions()
