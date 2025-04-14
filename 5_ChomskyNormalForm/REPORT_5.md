@@ -197,6 +197,13 @@ This final step ensures that:
 - All right-hand sides with more than two symbols are broken down into binary rules using newly generated non-terminals.
 - Terminal symbols in binary rules are replaced with new non-terminals that map directly to the terminals.
 
+**Step 1: Eliminate epsilon-productions**
+
+In this step, I remove rules like `A → ε`, which means a non-terminal can produce the empty string.
+First, I collect all non-terminals that can eventually become ε (directly or indirectly). Then, I go through all the 
+rules and add new ones by imagining what happens if those ε-symbols just disappear.
+
+Example: if `X → AB` and `B → ε`, I add `X → A` as an option too.
 ```python
     def to_cnf(self, print_steps=True):
         if self.is_cnf():
@@ -207,25 +214,60 @@ This final step ensures that:
             print('1. After eliminating epsilon productions:')
             self.print_rules()
             print()
+            
+```
 
+**Step 2: Eliminate renaming/unit-productions**
+
+Now I remove rules where one non-terminal just points to another, like `A → B`.
+Instead of going through `A → B → something`, I copy all of `B`'s rules directly to `A`, and delete the rule `A → B`.
+In the end, every rule will either produce terminals or combinations, not just a single other non-terminal.
+```python
         self.eliminate_renaming()
         if print_steps:
             print('2. After eliminating renaming productions:')
             self.print_rules()
             print()
+```
 
+**Step 3: Eliminate inaccessible symbols**
+
+This step gets rid of non-terminals that can never be reached from the start symbol (`S`).
+I simulate starting from `S` and collect all symbols that can be reached through the rules. Everything else is deleted, 
+because it’s useless in generating any string.
+```python
         self.eliminate_inaccessible_symbols()
         if print_steps:
             print('3. After eliminating inaccessible symbols:')
             self.print_rules()
             print()
+```
 
-        self.eliminate_non_productive_symbols()
-        if print_steps:
-            print('4. After eliminating non-productive symbols:')
-            self.print_rules()
-            print()
+**Step 4: Eliminate non-productive symbols**
 
+Now I remove symbols that will never lead to a string made of only terminals.
+I keep only the symbols that are "productive", meaning they can eventually turn into something real (like `a`, `b`, etc.). 
+If a rule leads nowhere meaningful, I remove it.
+```python
+       self.eliminate_non_productive_symbols()
+       if print_steps:
+           print('4. After eliminating non-productive symbols:')
+           self.print_rules()
+           print()
+```
+
+**Step 5: Convert to CNF**
+
+In the final step, I make sure every rule fits CNF format:
+- either one terminal (like `A → a`)
+- or two non-terminals (like `A → BC`)
+
+If a rule has more than 2 symbols on the right (like `A → BCD`), I break it into binary chunks using new non-terminals. 
+Example: `A → BCD` becomes `A → BX`, then `X → CD`.
+If there’s a mix of terminal and non-terminal (like `A → aB`), I replace the terminal with a new non-terminal, like:
+`1 → a` and `A → 1B`.
+At the end, I rebuild the rule set with all the original and new non-terminals.
+```python
         rhs_to_non_terminal = {}
         old_non_terminals = list(self.rules)
 
@@ -368,55 +410,56 @@ Each test confirms that:
 Testing started at 10:23 ...
 
 
-Ran 7 tests in 0.002s
+Ran 7 tests in 0.001s
 
 OK
-Launching unittests with arguments python -m unittest /Users/mihaela/Documents/UNIVERSITY/LFA/5_ChomskyNormalForm/test.py in /Users/mihaela/Documents/UNIVERSITY/LFA/5_ChomskyNormalForm
+Launching unittests with arguments python -m unittest /Users/mihaela/Documents/UNIVERSITY/DSL_laboratory_works/5_ChomskyNormalForm/test.py in /Users/mihaela/Documents/UNIVERSITY/DSL_laboratory_works/5_ChomskyNormalForm
 
 1. After eliminating epsilon productions:
 S -> B
-A -> a | aX | bX | b
-X -> BX | B | b
+A -> a | aX | b | bX
 B -> AXaD | AaD
-D -> a | aD
 C -> Ca
+D -> a | aD
+X -> B | BX | b
 
 2. After eliminating renaming productions:
 S -> AXaD | AaD
-A -> a | aX | bX | b
-X -> AXaD | BX | AaD | b
+A -> a | aX | b | bX
 B -> AXaD | AaD
-D -> a | aD
 C -> Ca
+D -> a | aD
+X -> AXaD | AaD | BX | b
 
 3. After eliminating inaccessible symbols:
-X -> AXaD | BX | AaD | b
-A -> a | aX | bX | b
 S -> AXaD | AaD
-D -> a | aD
+A -> a | aX | b | bX
 B -> AXaD | AaD
+D -> a | aD
+X -> AXaD | AaD | BX | b
 
 4. After eliminating non-productive symbols:
-X -> AXaD | BX | AaD | b
-A -> a | aX | bX | b
 S -> AXaD | AaD
-D -> a | aD
+A -> a | aX | b | bX
 B -> AXaD | AaD
+D -> a | aD
+X -> AXaD | AaD | BX | b
 
 5. After converting to CNF:
-X -> b | 2D | BX | 1D
-A -> a | 3X | 4X | b
-S -> 2D | 1D
-D -> a | 3D
-B -> 2D | 1D
-4 -> b
-1 -> 03
+S -> 0D | 2D
+A -> 3X | 4X | a | b
+B -> 0D | 2D
+D -> 3D | a
+X -> 0D | 2D | BX | b
+0 -> A3
+1 -> AX
+2 -> 13
 3 -> a
-2 -> A3
-0 -> AX
+4 -> b
 
 
 Process finished with exit code 0
+
 ```
 ---
 
