@@ -7,8 +7,17 @@ class Grammar:
         self._new_nt_counter = 1
 
     def print_rules(self):
-        for non_terminal in self.rules:
-            print(f'{non_terminal} -> {" | ".join(self.rules[non_terminal])}')
+        def custom_sort(nt):
+            if nt == 'S':
+                return (0, '')
+            elif nt[0].isalpha():
+                return (1, nt)
+            else:
+                return (2, nt)
+
+        ordered = sorted(self.rules.keys(), key=custom_sort)
+        for non_terminal in ordered:
+            print(f'{non_terminal} -> {" | ".join(sorted(self.rules[non_terminal]))}')
 
     def is_cnf(self):
         for non_terminal in self.rules:
