@@ -348,7 +348,9 @@ This method uses a pool of Greek and Latin characters and falls back to appendin
 
 ## Testing & Validation
 
-To ensure correctness, a suite of unit tests was written using `unittest`. The tests check the integrity of the grammar at each step and validate the final CNF format. The variant used for testing is number **29**, with the following initial grammar:
+To ensure correctness, a suite of unit tests was written using `unittest`. The tests check the integrity of the grammar 
+at each step and validate the final CNF format. The variant used for testing is number **28**, with the following 
+initial grammar:
 
 ```python
 non_terminals = ['S', 'A', 'B', 'C', 'D', 'X']
