@@ -465,9 +465,16 @@ Process finished with exit code 0
 ```
 ---
 
-## Conclusion
-
-In this lab, I implemented a class-based approach for transforming a context-free grammar into Chomsky Normal Form. Each step was modularized for clarity and testability. The final solution is capable of handling arbitrary grammars, not just a fixed example. The implementation passed all unit tests, validating its correctness. Although further improvements are possible, the current structure provides a strong base for extending CNF-related features.
+### Conclusion
+In this lab, I developed a class-based system for transforming any context-free grammar into its equivalent Chomsky 
+Normal Form (CNF). Each transformation step — including the elimination of epsilon-productions, renaming rules, 
+inaccessible symbols, and non-productive symbols — was implemented as a separate method to ensure modularity, clarity, 
+and ease of testing. The final conversion to CNF ensures that all grammar rules follow the strict form required, using 
+helper non-terminals when necessary. My implementation was designed to handle arbitrary grammars, not just predefined 
+examples, making it more flexible and reusable for future use cases. All unit tests passed successfully, which confirms 
+the correctness and reliability of the transformations. The logic is easy to follow and can be extended further if 
+needed — for example, to support more advanced parsing tools or grammar visualizations. Overall, the structure I built 
+provides a strong foundation for working with grammars and CNF in a more complex compiler or language processing project.
 
 ---
 
