@@ -181,6 +181,8 @@ class ASTVisualizer:
 
 This creates a text representation of the tree using indentation to show the hierarchy.
 
+Then I made more graphical representation using characters like ├── and └── to show the tree structure.
+Both visualizations have been immensely helpful in debugging and understanding the parsed expressions.
 ## Results and Screenshots
 
 I wrote a bunch of test cases to make sure everything was working correctly. Here are some examples of expressions I tested:
@@ -194,16 +196,122 @@ I wrote a bunch of test cases to make sure everything was working correctly. Her
 
 Here's what parsing `x = 5 + 3` looks like:
 
-![output1.png](images/output1.png)
+![img.png](images/output.png)
 
 For more complex expressions like `y = 2 * (4 - 1)`, the AST correctly handles precedence:
 
-![img.png](images/output2.png)
+```
+Expression: y = 2 * (4 - 1)
+Using Character-based Lexer
+Tokens:
+  Token(TokenType.IDENTIFIER, y)
+  Token(TokenType.ASSIGN, =)
+  Token(TokenType.NUMBER, 2)
+  Token(TokenType.MULTIPLY, *)
+  Token(TokenType.LPAREN, ()
+  Token(TokenType.NUMBER, 4)
+  Token(TokenType.MINUS, -)
+  Token(TokenType.NUMBER, 1)
+  Token(TokenType.RPAREN, ))
+  Token(TokenType.EOF, None)
+Expression: y = 2 * (4 - 1)
+
+TEXT VISUALIZATION:
+AssignmentNode
+  variable:
+    name: y
+  value:
+  BinaryOpNode
+    operator: *
+    left:
+    NumberNode
+      value: 2
+    right:
+    BinaryOpNode
+      operator: -
+      left:
+      NumberNode
+        value: 4
+      right:
+      NumberNode
+        value: 1
+
+ASCII TREE VISUALIZATION:
+Assignment
+    ├── variable: Variable(y)
+    └── value: BinaryOp(*)
+        ├── left: Number(2)
+        └── right: BinaryOp(-)
+            ├── left: Number(4)
+            └── right: Number(1)
+```
 
 This shows that the AST correctly represents the multiplication of `2` with the result of `4 - 1`.
 
 And here are some other examples for absolute value and predefined functions.
-![img.png](images/output3.png)
+
+```
+Expression: c = |x - y|
+Using Character-based Lexer
+Tokens:
+  Token(TokenType.IDENTIFIER, c)
+  Token(TokenType.ASSIGN, =)
+  Token(TokenType.ABS_BAR, |)
+  Token(TokenType.IDENTIFIER, x)
+  Token(TokenType.MINUS, -)
+  Token(TokenType.IDENTIFIER, y)
+  Token(TokenType.ABS_BAR, |)
+  Token(TokenType.EOF, None)
+Expression: c = |x - y|
+
+TEXT VISUALIZATION:
+AssignmentNode
+  variable:
+    name: c
+  value:
+  AbsoluteValueNode
+    expression:
+    BinaryOpNode
+      operator: -
+      left:
+      VariableNode
+        name: x
+      right:
+      VariableNode
+        name: y
+
+ASCII TREE VISUALIZATION:
+Assignment
+    ├── variable: Variable(c)
+    └── value: AbsoluteValue
+        └── expr: BinaryOp(-)
+            ├── left: Variable(x)
+            └── right: Variable(y)
+
+```
+```
+Expression: sin(30)
+Using Character-based Lexer
+Tokens:
+  Token(TokenType.FUNCTION, sin)
+  Token(TokenType.LPAREN, ()
+  Token(TokenType.NUMBER, 30)
+  Token(TokenType.RPAREN, ))
+  Token(TokenType.EOF, None)
+Expression: sin(30)
+
+TEXT VISUALIZATION:
+FunctionCallNode
+  name: sin
+  arguments:
+  NumberNode
+    value: 30
+
+ASCII TREE VISUALIZATION:
+Function(sin)
+    └── args: Number(30)
+
+```
 
 ## Conclusions
 
