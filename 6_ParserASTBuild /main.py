@@ -1,5 +1,6 @@
 from tokenizer import tokenize
 from parser import Parser
+from ast_visualizer import visualize_ast
 
 from ast_nodes import (
     BinaryOpNode,
@@ -110,10 +111,26 @@ def test_parser(expr, use_regex_lexer=False):
     parser = Parser(tokens)
     ast = parser.parse()
 
-    print("\nAST Structure:")
-    print_ast(ast)
-    print("\n" + "-" * 50)
+    # print("\nAST Structure:")
+    # print_ast(ast)
+    # print("\n" + "-" * 50)
 
+
+def test_visualize(expr):
+    print(f"Expression: {expr}")
+
+    tokens = tokenize(expr)
+    parser = Parser(tokens)
+    ast = parser.parse()
+
+    print("\nTEXT VISUALIZATION:")
+    visualize_ast(ast, "text")
+
+    print("\nASCII TREE VISUALIZATION:")
+    visualize_ast(ast, "ascii")
+
+
+    print("\n" + "*" * 50 + "\n")
 
 expressions = [
     "3.14",
@@ -128,8 +145,8 @@ expressions = [
     "7 % 3"
 ]
 
-print("\nTESTING WITH CHARACTER-BASED LEXER")
 print("*" * 50)
 
 for expr in expressions:
     test_parser(expr, use_regex_lexer=False)
+    test_visualize(expr)
